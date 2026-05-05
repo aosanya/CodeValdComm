@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package codevaldcomm.v1;
+
+option go_package = "github.com/aosanya/CodeValdComm/gen/go/codevaldcomm/v1;codevaldcommv1";
+
+// CommService is the gRPC service exposed by CodeValdComm.
+// Entity and relationship CRUD operations are served directly by
+// EntityService from CodeValdSharedLib (registered in cmd/main.go).
+// CommService exposes only service-level operations that require comm domain logic.
+service CommService {
+  // GetSchema returns the active comm schema for the given agency.
+  // Error: NOT_FOUND if no schema has been seeded for the agency.
+  rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
+}
+
+// GetSchemaRequest identifies the agency whose active comm schema to return.
+message GetSchemaRequest {
+  string agency_id = 1;
+}
+
+// GetSchemaResponse carries the active comm schema metadata.
+message GetSchemaResponse {
+  // id is the schema identifier (e.g. "comm-schema-v1").
+  string id = 1;
+
+  // version is the numeric schema version (1-based).
+  int32 version = 2;
+
+  // tag is the human-readable version label (e.g. "v1").
+  string tag = 3;
+
+  // agency_id is the agency this schema is scoped to.
+  string agency_id = 4;
+}
