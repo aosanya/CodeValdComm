@@ -1,4 +1,4 @@
-.PHONY: build build-server server dev dev-restart kill proto test cover test-arango test-all vet lint clean
+.PHONY: build build-server build-dev server dev dev-restart kill proto test cover test-arango test-all vet lint clean
 
 export PATH := /usr/local/go/bin:$(PATH)
 
@@ -8,29 +8,33 @@ export PATH := /usr/local/go/bin:$(PATH)
 build:
 	go build ./...
 
-## Build the production server binary to bin/codevaldcomm.
+## Build the production server binary to bin/codevaldcomm-server.
 build-server:
-	go build -o bin/codevaldcomm ./cmd
+	go build -o bin/codevaldcomm-server ./cmd/server
+
+## Build the dev binary to bin/codevaldcomm-dev.
+build-dev:
+	go build -o bin/codevaldcomm-dev ./cmd/dev
 
 ## Run the production server locally. Expects env vars to be set by the caller
 ## (or the shell) — does not source .env, to mirror container behaviour.
 server: build-server
-	./bin/codevaldcomm
+	./bin/codevaldcomm-server
 
-## Run the server with local-dev defaults sourced from .env (if present).
-dev: build-server
+## Run the dev binary with local-dev defaults sourced from .env (if present).
+dev: build-dev
 	@if [ -f .env ]; then \
 		set -a && . ./.env && set +a; \
 	fi; \
-	./bin/codevaldcomm
+	./bin/codevaldcomm-dev
 
 ## Stop any running dev instance, rebuild, and run.
 dev-restart: kill dev
 
-## Stop any running instances of the codevaldcomm binary.
+## Stop any running instances of the codevaldcomm binaries.
 kill:
 	@echo "Stopping any running instances..."
-	-@pkill -9 -f "bin/codevaldcomm" 2>/dev/null || true
+	-@pkill -9 -f "bin/codevaldcomm-" 2>/dev/null || true
 	@sleep 1
 
 # ── Proto Codegen ─────────────────────────────────────────────────────────────

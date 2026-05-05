@@ -1,7 +1,8 @@
-// Command main is the CodeValdComm gRPC microservice entry point.
-// Configuration is read strictly from environment variables (see
-// internal/config for the full list).
-package main
+// Package app holds the shared runtime wiring for CodeValdComm. Both the
+// production binary (cmd/server) and the local dev binary (cmd/dev) call
+// Run; they differ only in which environment variables they set before
+// loading config.
+package app
 
 import (
 	"context"
@@ -31,13 +32,9 @@ import (
 	"github.com/aosanya/CodeValdSharedLib/serverutil"
 )
 
-func main() {
-	if err := run(config.Load()); err != nil {
-		log.Fatalf("codevaldcomm: %v", err)
-	}
-}
-
-func run(cfg config.Config) error {
+// Run starts all CodeValdComm subsystems (Cross registrar, ArangoDB backend,
+// gRPC + HTTP via cmux) and blocks until SIGINT/SIGTERM triggers graceful shutdown.
+func Run(cfg config.Config) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -100,7 +97,7 @@ func run(cfg config.Config) error {
 	pb.RegisterCommServiceServer(grpcServer, server.New(backend))
 	healthpb.RegisterHealthServiceServer(grpcServer, health.New("codevaldcomm"))
 
-	// ── HTTP convenience handler (9 flows) ────────────────────────────────────
+	// ── HTTP convenience handler (9 comm flows) ───────────────────────────────
 	httpHandler := httphandler.New(backend, backend, pub)
 	httpServer := &http.Server{
 		Handler:      httpHandler,
