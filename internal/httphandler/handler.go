@@ -207,7 +207,6 @@ func (h *Handler) promoteToThread(w http.ResponseWriter, r *http.Request, messag
 		return
 	}
 
-	h.publish(ctx, aid, TopicThreadPromoted, ThreadPromotedPayload{MessageID: messageID})
 	writeJSON(w, http.StatusOK, updated)
 }
 
@@ -313,10 +312,6 @@ func (h *Handler) editMessage(w http.ResponseWriter, r *http.Request, messageID 
 		return
 	}
 
-	h.publish(ctx, aid, TopicMessageEdited, MessageEditedPayload{
-		MessageID:     messageID,
-		EditHistoryID: eh.ID,
-	})
 	writeJSON(w, http.StatusOK, updated)
 }
 
@@ -392,11 +387,6 @@ func (h *Handler) addReaction(w http.ResponseWriter, r *http.Request, messageID 
 		return
 	}
 
-	h.publish(ctx, aid, TopicReactionAdded, ReactionAddedPayload{
-		MessageID:     messageID,
-		ParticipantID: req.ParticipantID,
-		Emoji:         req.Emoji,
-	})
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"id":             rel.ID,
 		"message_id":     messageID,
@@ -486,10 +476,6 @@ func (h *Handler) updatePresence(w http.ResponseWriter, r *http.Request, partici
 		return
 	}
 
-	h.publish(ctx, aid, TopicParticipantPresence, ParticipantPresencePayload{
-		ParticipantID: participantID,
-		Presence:      req.Presence,
-	})
 	writeJSON(w, http.StatusOK, updated)
 }
 
@@ -573,10 +559,6 @@ func (h *Handler) joinChannel(w http.ResponseWriter, r *http.Request, channelID 
 		return
 	}
 
-	h.publish(ctx, aid, TopicMemberJoined, MemberJoinedPayload{
-		ChannelID:     channelID,
-		ParticipantID: req.ParticipantID,
-	})
 	writeJSON(w, http.StatusCreated, rel)
 }
 

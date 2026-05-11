@@ -12,7 +12,6 @@ import (
 	"time"
 
 	codevaldcomm "github.com/aosanya/CodeValdComm"
-	"github.com/aosanya/CodeValdComm/internal/httphandler"
 	"github.com/aosanya/CodeValdSharedLib/eventbus"
 	entityserver "github.com/aosanya/CodeValdSharedLib/entitygraph/server"
 	sharedregistrar "github.com/aosanya/CodeValdSharedLib/registrar"
@@ -51,7 +50,7 @@ func New(
 		advertiseAddr,
 		agencyID,
 		"codevaldcomm",
-		httphandler.AllTopics(),
+		codevaldcomm.AllTopics(),
 		[]string{"cross.agency.created"},
 		commRoutes(agencyID),
 		pingInterval,
