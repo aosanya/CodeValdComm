@@ -7,15 +7,16 @@ package registrar
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"time"
 
 	codevaldcomm "github.com/aosanya/CodeValdComm"
 	"github.com/aosanya/CodeValdComm/internal/httphandler"
 	"github.com/aosanya/CodeValdSharedLib/eventbus"
+	entityserver "github.com/aosanya/CodeValdSharedLib/entitygraph/server"
 	sharedregistrar "github.com/aosanya/CodeValdSharedLib/registrar"
 	"github.com/aosanya/CodeValdSharedLib/schemaroutes"
-	entityserver "github.com/aosanya/CodeValdSharedLib/entitygraph/server"
 	"github.com/aosanya/CodeValdSharedLib/types"
 )
 
@@ -73,11 +74,18 @@ func (r *Registrar) Close() {
 }
 
 // Publish implements [eventbus.Publisher].
-// Best-effort notification — logs the event. A future iteration will call a
-// CodeValdCross Publish RPC once it is available.
-func (r *Registrar) Publish(_ context.Context, e eventbus.Event) error {
-	log.Printf("registrar[codevaldcomm]: publish topic=%q agencyID=%q payload=%T",
-		e.Topic, e.AgencyID, e.Payload)
+// Marshals the event payload to JSON and forwards it to CodeValdCross via the
+// shared-library heartbeat registrar's Publish RPC.
+// Errors are logged but not returned — the comm operation is already persisted.
+func (r *Registrar) Publish(ctx context.Context, e eventbus.Event) error {
+	payload, err := json.Marshal(e.Payload)
+	if err != nil {
+		log.Printf("registrar[codevaldcomm]: marshal payload for topic=%q: %v", e.Topic, err)
+		payload = []byte("{}")
+	}
+	if err := r.heartbeat.Publish(ctx, e.AgencyID, e.Topic, "codevaldcomm", string(payload)); err != nil {
+		log.Printf("registrar[codevaldcomm]: Publish topic=%q: %v", e.Topic, err)
+	}
 	return nil
 }
 
