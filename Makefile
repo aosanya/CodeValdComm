@@ -37,6 +37,9 @@ kill:
 	-@pkill -9 -f "bin/codevaldcomm-" 2>/dev/null || true
 	@sleep 1
 
+## Stop any running instance, rebuild, and run.
+restart: dev-restart
+
 # ── Proto Codegen ─────────────────────────────────────────────────────────────
 
 ## Regenerate Go stubs from proto/codevaldcomm/v1/*.proto.

@@ -2,16 +2,18 @@
 // These routes orchestrate multi-step entity graph operations that cannot be
 // expressed as a single EntityService CRUD call.
 //
-// The nine flows:
-//  1. SendMessage      POST /channels/{channelId}/messages
-//  2. PromoteToThread  PUT  /messages/{messageId}/promote
-//  3. EditMessage      PUT  /messages/{messageId}
-//  4. AddReaction      POST /messages/{messageId}/reactions
-//  5. MarkRead         POST /messages/{messageId}/read
-//  6. UpdatePresence   PUT  /participants/{participantId}
-//  7. CreateChannel    POST /channels
-//  8. JoinChannel      POST /channels/{channelId}/members
-//  9. CreateDM         POST /direct
+// The eleven flows:
+//  1.  SendMessage        POST /channels/{channelId}/messages
+//  2.  PromoteToThread    PUT  /messages/{messageId}/promote
+//  3.  EditMessage        PUT  /messages/{messageId}
+//  4.  AddReaction        POST /messages/{messageId}/reactions
+//  5.  MarkRead           POST /messages/{messageId}/read
+//  6.  UpdatePresence     PUT  /participants/{participantId}
+//  7.  CreateChannel      POST /channels
+//  8.  JoinChannel        POST /channels/{channelId}/members
+//  9.  CreateDM           POST /direct
+// 10.  CreateParticipant  POST /participants
+// 11.  ListMessages       GET  /channels/{channelId}/messages
 package httphandler
 
 import (
@@ -51,6 +53,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.createChannel(w, r)
 	case r.Method == http.MethodPost && len(parts) == 3 && parts[0] == "channels" && parts[2] == "messages":
 		h.sendMessage(w, r, parts[1])
+	case r.Method == http.MethodGet && len(parts) == 3 && parts[0] == "channels" && parts[2] == "messages":
+		h.listMessages(w, r, parts[1])
 	case r.Method == http.MethodPost && len(parts) == 3 && parts[0] == "channels" && parts[2] == "members":
 		h.joinChannel(w, r, parts[1])
 	case r.Method == http.MethodPut && len(parts) == 3 && parts[0] == "messages" && parts[2] == "promote":
@@ -63,6 +67,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.markRead(w, r, parts[1])
 	case r.Method == http.MethodPut && len(parts) == 2 && parts[0] == "participants":
 		h.updatePresence(w, r, parts[1])
+	case r.Method == http.MethodPost && len(parts) == 1 && parts[0] == "participants":
+		h.createParticipant(w, r)
 	case r.Method == http.MethodPost && len(parts) == 1 && parts[0] == "direct":
 		h.createDM(w, r)
 	default:
@@ -280,11 +286,14 @@ func (h *Handler) editMessage(w http.ResponseWriter, r *http.Request, messageID 
 		return
 	}
 
-	// Update the message body.
+	// Update the message body, marking it as edited.
+	editCount, _ := msg.Properties["edit_count"].(float64)
 	updated, err := h.dm.UpdateEntity(ctx, aid, messageID, entitygraph.UpdateEntityRequest{
 		Properties: map[string]any{
 			"body":       req.Body,
 			"updated_at": now,
+			"edited":     true,
+			"edit_count": int(editCount) + 1,
 		},
 	})
 	if err != nil {
@@ -376,7 +385,12 @@ func (h *Handler) addReaction(w http.ResponseWriter, r *http.Request, messageID 
 		ParticipantID: req.ParticipantID,
 		Emoji:         req.Emoji,
 	})
-	writeJSON(w, http.StatusCreated, rel)
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"id":             rel.ID,
+		"message_id":     messageID,
+		"participant_id": req.ParticipantID,
+		"emoji":          req.Emoji,
+	})
 }
 
 // ── (5) MarkRead ─────────────────────────────────────────────────────────────
@@ -399,14 +413,25 @@ func (h *Handler) markRead(w http.ResponseWriter, r *http.Request, messageID str
 		return
 	}
 
-	// Idempotent: attempt to create; ignore AlreadyExists.
+	now := time.Now().UTC().Format(time.RFC3339)
 	rel, err := h.dm.CreateRelationship(ctx, entitygraph.CreateRelationshipRequest{
 		AgencyID: aid,
 		Name:     "read_by",
 		FromID:   messageID,
 		ToID:     req.ParticipantID,
+		Properties: map[string]any{
+			"read_at": now,
+		},
 	})
-	if err != nil && !errors.Is(err, entitygraph.ErrEntityAlreadyExists) {
+	if err != nil {
+		if errors.Is(err, entitygraph.ErrEntityAlreadyExists) {
+			writeJSON(w, http.StatusOK, map[string]any{
+				"message_id":     messageID,
+				"participant_id": req.ParticipantID,
+				"read_at":        now,
+			})
+			return
+		}
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -461,6 +486,7 @@ func (h *Handler) updatePresence(w http.ResponseWriter, r *http.Request, partici
 type createChannelRequest struct {
 	Name              string `json:"name"`
 	Description       string `json:"description"`
+	CreatedBy         string `json:"created_by,omitempty"`
 	EditWindowSeconds *int   `json:"edit_window_seconds,omitempty"`
 }
 
@@ -484,6 +510,9 @@ func (h *Handler) createChannel(w http.ResponseWriter, r *http.Request) {
 		"is_direct":   false,
 		"created_at":  time.Now().UTC().Format(time.RFC3339),
 		"updated_at":  time.Now().UTC().Format(time.RFC3339),
+	}
+	if req.CreatedBy != "" {
+		props["created_by"] = req.CreatedBy
 	}
 	if req.EditWindowSeconds != nil {
 		props["edit_window_seconds"] = *req.EditWindowSeconds
@@ -591,4 +620,72 @@ func (h *Handler) createDM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, ch)
+}
+
+// ── (10) CreateParticipant ────────────────────────────────────────────────────
+
+type createParticipantRequest struct {
+	UserID      string `json:"user_id"`
+	DisplayName string `json:"display_name"`
+	Presence    string `json:"presence"`
+}
+
+func (h *Handler) createParticipant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	aid := agencyID(r)
+
+	var req createParticipantRequest
+	if err := decode(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if req.UserID == "" {
+		writeError(w, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	p, err := h.dm.CreateEntity(ctx, entitygraph.CreateEntityRequest{
+		AgencyID: aid,
+		TypeID:   "Participant",
+		Properties: map[string]any{
+			"user_id":      req.UserID,
+			"display_name": req.DisplayName,
+			"presence":     req.Presence,
+			"created_at":   now,
+			"updated_at":   now,
+		},
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, p)
+}
+
+// ── (11) ListMessages ─────────────────────────────────────────────────────────
+
+func (h *Handler) listMessages(w http.ResponseWriter, r *http.Request, channelID string) {
+	ctx := r.Context()
+	aid := agencyID(r)
+
+	rels, err := h.dm.ListRelationships(ctx, entitygraph.RelationshipFilter{
+		AgencyID: aid,
+		FromID:   channelID,
+		Name:     "has_message",
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	messages := make([]entitygraph.Entity, 0, len(rels))
+	for _, rel := range rels {
+		msg, err := h.dm.GetEntity(ctx, aid, rel.ToID)
+		if err != nil {
+			continue
+		}
+		messages = append(messages, msg)
+	}
+	writeJSON(w, http.StatusOK, messages)
 }
