@@ -44,8 +44,20 @@ func New(dm codevaldcomm.CommDataManager, sm codevaldcomm.CommSchemaManager, pub
 }
 
 // ServeHTTP routes incoming requests to the appropriate flow handler.
+// Handles both direct calls (/channels/...) and Cross-forwarded calls
+// (/{agencyId}/comm/channels/...). When Cross forwards, the full original
+// path is preserved; the agency ID is parsed from the path and injected
+// as X-Agency-Id so agencyID(r) can read it.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
+	allParts := strings.Split(path, "/")
+
+	// Path form from Cross: {agencyId}/comm/{resource...}
+	if len(allParts) >= 2 && allParts[1] == "comm" {
+		r.Header.Set("X-Agency-Id", allParts[0])
+		path = strings.Join(allParts[2:], "/")
+	}
+
 	parts := strings.SplitN(path, "/", 4)
 
 	switch {

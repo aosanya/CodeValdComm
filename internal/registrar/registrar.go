@@ -82,18 +82,41 @@ func (r *Registrar) Publish(_ context.Context, e eventbus.Event) error {
 }
 
 // commRoutes returns the HTTP routes CodeValdComm registers with Cross.
-// Schema-derived CRUD routes (for Channel, Participant, Message, EditHistory,
-// Attachment) point to EntityService. Custom comm flows are exposed separately.
+// Convenience flow routes (empty GrpcMethod) are prepended so they win
+// first-match over the schema-derived gRPC routes for overlapping patterns.
 func commRoutes(agencyID string) []types.RouteInfo {
+	var routes []types.RouteInfo
+	routes = append(routes, convenienceRoutes()...)
 	schema := codevaldcomm.DefaultCommSchema()
-	routes := schemaroutes.RoutesFromSchema(
+	routes = append(routes, schemaroutes.RoutesFromSchema(
 		schema,
 		"/{agencyId}/comm",
 		"agencyId",
 		entityserver.GRPCServicePath,
-	)
+	)...)
 	for _, rt := range routes {
 		log.Printf("[registrar] route: %s %s → %s", rt.Method, rt.Pattern, rt.GrpcMethod)
 	}
 	return routes
+}
+
+// convenienceRoutes returns direct-HTTP routes for CodeValdComm's eleven
+// multi-step flows. GrpcMethod is intentionally empty so Cross forwards the
+// request verbatim to CodeValdComm's HTTP handler instead of calling a gRPC
+// method. These are prepended before schema-derived routes so they win on
+// first-match for overlapping patterns.
+func convenienceRoutes() []types.RouteInfo {
+	return []types.RouteInfo{
+		{Method: "POST", Pattern: "/{agencyId}/comm/participants", Capability: "create_participant", IsWrite: true},
+		{Method: "PUT", Pattern: "/{agencyId}/comm/participants/{participantId}", Capability: "update_presence", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/channels", Capability: "create_channel", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/channels/{channelId}/members", Capability: "join_channel", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/channels/{channelId}/messages", Capability: "send_message", IsWrite: true},
+		{Method: "GET", Pattern: "/{agencyId}/comm/channels/{channelId}/messages", Capability: "list_messages"},
+		{Method: "PUT", Pattern: "/{agencyId}/comm/messages/{messageId}", Capability: "edit_message", IsWrite: true},
+		{Method: "PUT", Pattern: "/{agencyId}/comm/messages/{messageId}/promote", Capability: "promote_to_thread", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/messages/{messageId}/reactions", Capability: "add_reaction", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/messages/{messageId}/read", Capability: "mark_read", IsWrite: true},
+		{Method: "POST", Pattern: "/{agencyId}/comm/direct", Capability: "create_dm", IsWrite: true},
+	}
 }
