@@ -1,6 +1,6 @@
 // Package registrar provides the CodeValdComm service registrar.
 // It wraps the shared-library heartbeat registrar, subscribes to
-// cross.agency.created for schema seeding, and implements
+// agency.published for schema seeding, and implements
 // [codevaldcomm.CrossPublisher] so HTTP handlers can notify CodeValdCross of
 // comm lifecycle events.
 package registrar
