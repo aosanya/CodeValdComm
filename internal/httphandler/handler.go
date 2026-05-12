@@ -313,6 +313,7 @@ func (h *Handler) editMessage(w http.ResponseWriter, r *http.Request, messageID 
 		return
 	}
 
+	h.publish(ctx, aid, TopicMessageEdited, map[string]string{"message_id": messageID})
 	writeJSON(w, http.StatusOK, updated)
 }
 
@@ -560,6 +561,7 @@ func (h *Handler) joinChannel(w http.ResponseWriter, r *http.Request, channelID 
 		return
 	}
 
+	h.publish(ctx, aid, TopicMemberJoined, map[string]string{"channel_id": channelID, "participant_id": req.ParticipantID})
 	writeJSON(w, http.StatusCreated, rel)
 }
 
