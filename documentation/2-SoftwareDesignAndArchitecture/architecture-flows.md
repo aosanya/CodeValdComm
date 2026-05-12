@@ -42,7 +42,7 @@
    })
 5. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".message.sent",
+       Topic:   "comm.message.sent",
        Payload: { messageID: message.ID, channelID, authorID },
        Source:  "codevaldcomm",
    })
@@ -67,7 +67,7 @@
    })
 4. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".thread.promoted",
+       Topic:   "comm.thread.promoted",
        Payload: { messageID, channelID: resolveChannelID(ctx, messageID) },
        Source:  "codevaldcomm",
    })
@@ -129,7 +129,7 @@
    })
 9. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".message.edited",
+       Topic:   "comm.message.edited",
        Payload: { messageID, channelID, version: message.editCount + 1 },
        Source:  "codevaldcomm",
    })
@@ -159,7 +159,7 @@
    })
 5. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".reaction.added",
+       Topic:   "comm.reaction.added",
        Payload: { messageID, participantID, emoji },
        Source:  "codevaldcomm",
    })
@@ -209,7 +209,7 @@ No pub/sub event for MarkRead in v1 — read receipts are query-only.
    })
 4. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".participant.presence",
+       Topic:   "comm.participant.presence",
        Payload: { participantID, presence },
        Source:  "codevaldcomm",
    })
@@ -284,7 +284,7 @@ Schema seeding is the only write path to `comm_schemas`.
    })
 6. bus.Publish(ctx, Message{
        ID:      uuid.New().String(),
-       Topic:   "cross.comm." + agencyID + ".member.joined",
+       Topic:   "comm.member.joined",
        Payload: { channelID, participantID, role },
        Source:  "codevaldcomm",
    })

@@ -22,5 +22,5 @@
 | Direct messages | A `Channel` with `isDirect: true` and exactly 2 `has_member` edges | Reuses Channel/Message/Participant model; no separate DM entity needed |
 | Convenience routes | Thin HTTP routes registered with Cross; each maps to one or two entity-graph operations | Domain-semantic API without duplicating business logic |
 | Storage isolation | One collection per entity type (`comm_groups`, `comm_messages`, …) | Query efficiency; clear ownership; matches DT `dt_` prefix pattern |
-| Pub/sub | Type-aware topics (`cross.comm.{agencyID}.message.sent`, etc.) | Consumers care about semantic events, not raw entity creates |
+| Pub/sub | Type-aware topics (`comm.message.sent`, etc.) | Consumers care about semantic events, not raw entity creates |
 | Database | Pre-existing shared `codevald_demo`; `comm_` prefixed collections | Same pattern as CodeValdDT |

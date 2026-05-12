@@ -208,9 +208,9 @@ From the channel view: Message B is visible with a thread activity preview
 
 | Topic | Published when | Payload |
 |---|---|---|
-| `cross.comm.{agencyID}.message.sent` | Message created in a channel | `{messageID, channelID, authorID}` |
-| `cross.comm.{agencyID}.message.edited` | Message content updated | `{messageID, channelID, version}` |
-| `cross.comm.{agencyID}.thread.promoted` | Message promoted to thread root | `{messageID, channelID}` |
-| `cross.comm.{agencyID}.reaction.added` | `has_reaction` edge created | `{messageID, participantID, emoji}` |
-| `cross.comm.{agencyID}.member.joined` | `has_member` edge created | `{channelID, participantID, role}` |
-| `cross.comm.{agencyID}.participant.presence` | Participant presence updated | `{participantID, presence}` |
+| `comm.message.sent` | Message created in a channel | `{messageID, channelID, authorID}` |
+| `comm.message.edited` | Message content updated | `{messageID, channelID, version}` |
+| `comm.thread.promoted` | Message promoted to thread root | `{messageID, channelID}` |
+| `comm.reaction.added` | `has_reaction` edge created | `{messageID, participantID, emoji}` |
+| `comm.member.joined` | `has_member` edge created | `{channelID, participantID, role}` |
+| `comm.participant.presence` | Participant presence updated | `{participantID, presence}` |

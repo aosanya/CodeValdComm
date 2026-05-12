@@ -149,12 +149,12 @@ RegisterRequest{
     ServiceName: "codevaldcomm",
     Addr:        ":50060",
     Produces: []string{
-        "cross.comm.{agencyID}.message.sent",
-        "cross.comm.{agencyID}.message.edited",
-        "cross.comm.{agencyID}.thread.promoted",
-        "cross.comm.{agencyID}.reaction.added",
-        "cross.comm.{agencyID}.member.joined",
-        "cross.comm.{agencyID}.participant.presence",
+        "comm.message.sent",
+        "comm.message.edited",
+        "comm.thread.promoted",
+        "comm.reaction.added",
+        "comm.member.joined",
+        "comm.participant.presence",
     },
     Consumes: []string{
         "cross.agency.created",  // seed default schema for new agency
