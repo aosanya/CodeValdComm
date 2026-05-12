@@ -51,7 +51,7 @@ func New(
 		agencyID,
 		"codevaldcomm",
 		codevaldcomm.AllTopics(),
-		[]string{"cross.agency.created"},
+		[]string{"agency.published"},
 		commRoutes(agencyID),
 		pingInterval,
 		pingTimeout,
