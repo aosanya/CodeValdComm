@@ -157,13 +157,13 @@ RegisterRequest{
         "comm.participant.presence",
     },
     Consumes: []string{
-        "cross.agency.created",  // seed default schema for new agency
+        "agency.created",  // seed default schema for new agency
     },
     Routes: commRoutes(),  // all convenience routes listed above
 }
 ```
 
-When `cross.agency.created` is received, CodeValdComm calls
+When `agency.created` is received, CodeValdComm calls
 `CommSchemaManager.SetSchema(agencyID, defaultCommSchema)` if no schema
 exists for that agency yet.
 

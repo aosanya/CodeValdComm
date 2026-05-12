@@ -46,7 +46,7 @@ CodeValdHi / gRPC callers
 
 - `CommDataManager` and `CommSchemaManager` are **always injected** — never constructed inside handlers or manager
 - `comm_relationships` **must be created as an ArangoDB edge collection** — this cannot be changed after creation
-- Schema is seeded into `comm_schemas` once per agency on `cross.agency.created`; `SetSchema` is **not** exposed via gRPC
+- Schema is seeded into `comm_schemas` once per agency on `agency.created`; `SetSchema` is **not** exposed via gRPC
 - Every mutating HTTP flow publishes a typed pub/sub event via the **CodeValdCross gRPC bus** — there is no in-process bus in this service
 - All pub/sub topic strings are **constants** — never inline string literals or runtime concatenation
 - No imports from CodeValdGit, CodeValdWork, CodeValdAgency, or CodeValdCross Go packages — gRPC only
@@ -67,7 +67,7 @@ CodeValdComm/
 │   ├── server/server.go             # gRPC CommService handlers (thin — delegate to manager)
 │   ├── httphandler/handler.go       # HTTP convenience route handlers
 │   ├── config/config.go             # Config struct + loader
-│   └── registrar/registrar.go       # Cross heartbeat + schema seeding on cross.agency.created
+│   └── registrar/registrar.go       # Cross heartbeat + schema seeding on agency.created
 ├── storage/arangodb/backend.go      # ArangoDB entitygraph.DataManager + SchemaManager impl
 └── proto/codevaldcomm/v1/comm.proto
 ```
@@ -137,7 +137,7 @@ topic := "cross.comm." + agencyID + ".message.sent"
 | `TopicMemberJoined` | AddMember |
 | `TopicParticipantPresence` | UpdatePresence |
 
-**Consumes**: `cross.agency.created` → seed `defaultCommSchema` for the new agency (idempotent).
+**Consumes**: `agency.created` → seed `defaultCommSchema` for the new agency (idempotent).
 
 ---
 

@@ -218,9 +218,9 @@ No pub/sub event for MarkRead in v1 — read receipts are query-only.
 
 ---
 
-## Flow 7: SchemaSeeding (on cross.agency.created)
+## Flow 7: SchemaSeeding (on agency.created)
 
-**Trigger:** `cross.agency.created` pub/sub event from CodeValdCross
+**Trigger:** `agency.created` pub/sub event from CodeValdCross
 
 ```
 1. Extract agencyID from event payload
