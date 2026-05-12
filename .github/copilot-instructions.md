@@ -114,17 +114,17 @@ Fetch channel → check `editWindowSeconds` (`0`=closed, `-1`=always open, `>0`=
 All topic strings are **constants** defined in one file (e.g. `topics.go`). Publishing goes through the injected CodeValdCross gRPC bus client — not an in-process bus.
 
 ```go
-// ✅ CORRECT — constants; publish via Cross gRPC client
+// ✅ CORRECT — package-level constants, no agencyID in topic string
 const (
-    TopicMessageSent       = "cross.comm.%s.message.sent"       // %s = agencyID
-    TopicMessageEdited     = "cross.comm.%s.message.edited"
-    TopicThreadPromoted    = "cross.comm.%s.thread.promoted"
-    TopicReactionAdded     = "cross.comm.%s.reaction.added"
-    TopicMemberJoined      = "cross.comm.%s.member.joined"
-    TopicParticipantPresence = "cross.comm.%s.participant.presence"
+    TopicMessageSent        = "comm.message.sent"
+    TopicMessageEdited      = "comm.message.edited"
+    TopicThreadPromoted     = "comm.thread.promoted"
+    TopicReactionAdded      = "comm.reaction.added"
+    TopicMemberJoined       = "comm.member.joined"
+    TopicParticipantPresence = "comm.participant.presence"
 )
 
-// ❌ WRONG — raw string concatenation
+// ❌ WRONG — cross. prefix and agencyID in topic string
 topic := "cross.comm." + agencyID + ".message.sent"
 ```
 
