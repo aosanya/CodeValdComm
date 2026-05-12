@@ -207,6 +207,7 @@ func (h *Handler) promoteToThread(w http.ResponseWriter, r *http.Request, messag
 		return
 	}
 
+	h.publish(ctx, aid, TopicThreadPromoted, map[string]string{"message_id": messageID})
 	writeJSON(w, http.StatusOK, updated)
 }
 

@@ -2,9 +2,12 @@ package httphandler
 
 import codevaldcomm "github.com/aosanya/CodeValdComm"
 
-// TopicMessageSent is the only event this service publishes.
-// Defined in the root package as [codevaldcomm.TopicMessageSent].
-const TopicMessageSent = codevaldcomm.TopicMessageSent
+const (
+	TopicMessageSent   = codevaldcomm.TopicMessageSent
+	TopicMessageEdited = codevaldcomm.TopicMessageEdited
+	TopicThreadPromoted = codevaldcomm.TopicThreadPromoted
+	TopicMemberJoined  = codevaldcomm.TopicMemberJoined
+)
 
 // MessageSentPayload is the payload for [TopicMessageSent].
 // Defined in the root package as [codevaldcomm.MessageSentPayload].
