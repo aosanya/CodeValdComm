@@ -139,6 +139,152 @@ func (x *GetSchemaResponse) GetAgencyId() string {
 	return ""
 }
 
+// RollbackByWorkflowRunRequest is the input to the CodeValdComm leg of the
+// WorkflowRun rollback coordinator (FEAT-20260602-004 Phase 2). The
+// coordinator in CodeValdWork calls this once per affected agency.
+type RollbackByWorkflowRunRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// agency_id is required — Comm scopes every entity by agency.
+	AgencyId string `protobuf:"bytes,1,opt,name=agency_id,json=agencyId,proto3" json:"agency_id,omitempty"`
+	// workflow_run_id is required — a global "rollback every run" sweep is
+	// intentionally not supported.
+	WorkflowRunId string `protobuf:"bytes,2,opt,name=workflow_run_id,json=workflowRunId,proto3" json:"workflow_run_id,omitempty"`
+	// reason is the operator-supplied rollback reason recorded on the
+	// rollback notification Message body and forwarded in the
+	// comm.pipeline.rolled_back event payload.
+	Reason        string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RollbackByWorkflowRunRequest) Reset() {
+	*x = RollbackByWorkflowRunRequest{}
+	mi := &file_codevaldcomm_v1_comm_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RollbackByWorkflowRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RollbackByWorkflowRunRequest) ProtoMessage() {}
+
+func (x *RollbackByWorkflowRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_codevaldcomm_v1_comm_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RollbackByWorkflowRunRequest.ProtoReflect.Descriptor instead.
+func (*RollbackByWorkflowRunRequest) Descriptor() ([]byte, []int) {
+	return file_codevaldcomm_v1_comm_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RollbackByWorkflowRunRequest) GetAgencyId() string {
+	if x != nil {
+		return x.AgencyId
+	}
+	return ""
+}
+
+func (x *RollbackByWorkflowRunRequest) GetWorkflowRunId() string {
+	if x != nil {
+		return x.WorkflowRunId
+	}
+	return ""
+}
+
+func (x *RollbackByWorkflowRunRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// RollbackByWorkflowRunResponse summarises the per-channel outcomes. Every
+// channel that holds at least one Message tagged with the rolled-back
+// workflow_run_id appears in exactly one of the two slices.
+type RollbackByWorkflowRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowRunId string                 `protobuf:"bytes,1,opt,name=workflow_run_id,json=workflowRunId,proto3" json:"workflow_run_id,omitempty"`
+	// notified_channel_ids: channels that received a fresh rollback
+	// notification Message during this call.
+	NotifiedChannelIds []string `protobuf:"bytes,2,rep,name=notified_channel_ids,json=notifiedChannelIds,proto3" json:"notified_channel_ids,omitempty"`
+	// skipped_channel_ids: channels that already held a rollback notification
+	// for this run; included so the call is observably idempotent.
+	SkippedChannelIds []string `protobuf:"bytes,3,rep,name=skipped_channel_ids,json=skippedChannelIds,proto3" json:"skipped_channel_ids,omitempty"`
+	// notification_message_ids: the Message IDs created during this call,
+	// aligned 1:1 with notified_channel_ids.
+	NotificationMessageIds []string `protobuf:"bytes,4,rep,name=notification_message_ids,json=notificationMessageIds,proto3" json:"notification_message_ids,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RollbackByWorkflowRunResponse) Reset() {
+	*x = RollbackByWorkflowRunResponse{}
+	mi := &file_codevaldcomm_v1_comm_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RollbackByWorkflowRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RollbackByWorkflowRunResponse) ProtoMessage() {}
+
+func (x *RollbackByWorkflowRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_codevaldcomm_v1_comm_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RollbackByWorkflowRunResponse.ProtoReflect.Descriptor instead.
+func (*RollbackByWorkflowRunResponse) Descriptor() ([]byte, []int) {
+	return file_codevaldcomm_v1_comm_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RollbackByWorkflowRunResponse) GetWorkflowRunId() string {
+	if x != nil {
+		return x.WorkflowRunId
+	}
+	return ""
+}
+
+func (x *RollbackByWorkflowRunResponse) GetNotifiedChannelIds() []string {
+	if x != nil {
+		return x.NotifiedChannelIds
+	}
+	return nil
+}
+
+func (x *RollbackByWorkflowRunResponse) GetSkippedChannelIds() []string {
+	if x != nil {
+		return x.SkippedChannelIds
+	}
+	return nil
+}
+
+func (x *RollbackByWorkflowRunResponse) GetNotificationMessageIds() []string {
+	if x != nil {
+		return x.NotificationMessageIds
+	}
+	return nil
+}
+
 var File_codevaldcomm_v1_comm_proto protoreflect.FileDescriptor
 
 const file_codevaldcomm_v1_comm_proto_rawDesc = "" +
@@ -150,9 +296,19 @@ const file_codevaldcomm_v1_comm_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x05R\aversion\x12\x10\n" +
 	"\x03tag\x18\x03 \x01(\tR\x03tag\x12\x1b\n" +
-	"\tagency_id\x18\x04 \x01(\tR\bagencyId2a\n" +
+	"\tagency_id\x18\x04 \x01(\tR\bagencyId\"{\n" +
+	"\x1cRollbackByWorkflowRunRequest\x12\x1b\n" +
+	"\tagency_id\x18\x01 \x01(\tR\bagencyId\x12&\n" +
+	"\x0fworkflow_run_id\x18\x02 \x01(\tR\rworkflowRunId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"\xe3\x01\n" +
+	"\x1dRollbackByWorkflowRunResponse\x12&\n" +
+	"\x0fworkflow_run_id\x18\x01 \x01(\tR\rworkflowRunId\x120\n" +
+	"\x14notified_channel_ids\x18\x02 \x03(\tR\x12notifiedChannelIds\x12.\n" +
+	"\x13skipped_channel_ids\x18\x03 \x03(\tR\x11skippedChannelIds\x128\n" +
+	"\x18notification_message_ids\x18\x04 \x03(\tR\x16notificationMessageIds2\xd9\x01\n" +
 	"\vCommService\x12R\n" +
-	"\tGetSchema\x12!.codevaldcomm.v1.GetSchemaRequest\x1a\".codevaldcomm.v1.GetSchemaResponseBGZEgithub.com/aosanya/CodeValdComm/gen/go/codevaldcomm/v1;codevaldcommv1b\x06proto3"
+	"\tGetSchema\x12!.codevaldcomm.v1.GetSchemaRequest\x1a\".codevaldcomm.v1.GetSchemaResponse\x12v\n" +
+	"\x15RollbackByWorkflowRun\x12-.codevaldcomm.v1.RollbackByWorkflowRunRequest\x1a..codevaldcomm.v1.RollbackByWorkflowRunResponseBGZEgithub.com/aosanya/CodeValdComm/gen/go/codevaldcomm/v1;codevaldcommv1b\x06proto3"
 
 var (
 	file_codevaldcomm_v1_comm_proto_rawDescOnce sync.Once
@@ -166,16 +322,20 @@ func file_codevaldcomm_v1_comm_proto_rawDescGZIP() []byte {
 	return file_codevaldcomm_v1_comm_proto_rawDescData
 }
 
-var file_codevaldcomm_v1_comm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_codevaldcomm_v1_comm_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_codevaldcomm_v1_comm_proto_goTypes = []any{
-	(*GetSchemaRequest)(nil),  // 0: codevaldcomm.v1.GetSchemaRequest
-	(*GetSchemaResponse)(nil), // 1: codevaldcomm.v1.GetSchemaResponse
+	(*GetSchemaRequest)(nil),              // 0: codevaldcomm.v1.GetSchemaRequest
+	(*GetSchemaResponse)(nil),             // 1: codevaldcomm.v1.GetSchemaResponse
+	(*RollbackByWorkflowRunRequest)(nil),  // 2: codevaldcomm.v1.RollbackByWorkflowRunRequest
+	(*RollbackByWorkflowRunResponse)(nil), // 3: codevaldcomm.v1.RollbackByWorkflowRunResponse
 }
 var file_codevaldcomm_v1_comm_proto_depIdxs = []int32{
 	0, // 0: codevaldcomm.v1.CommService.GetSchema:input_type -> codevaldcomm.v1.GetSchemaRequest
-	1, // 1: codevaldcomm.v1.CommService.GetSchema:output_type -> codevaldcomm.v1.GetSchemaResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: codevaldcomm.v1.CommService.RollbackByWorkflowRun:input_type -> codevaldcomm.v1.RollbackByWorkflowRunRequest
+	1, // 2: codevaldcomm.v1.CommService.GetSchema:output_type -> codevaldcomm.v1.GetSchemaResponse
+	3, // 3: codevaldcomm.v1.CommService.RollbackByWorkflowRun:output_type -> codevaldcomm.v1.RollbackByWorkflowRunResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -192,7 +352,7 @@ func file_codevaldcomm_v1_comm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_codevaldcomm_v1_comm_proto_rawDesc), len(file_codevaldcomm_v1_comm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

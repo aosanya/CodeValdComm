@@ -8,6 +8,7 @@ import (
 	pb "github.com/aosanya/CodeValdComm/gen/go/codevaldcomm/v1"
 	"github.com/aosanya/CodeValdComm/internal/server"
 	"github.com/aosanya/CodeValdSharedLib/entitygraph"
+	"github.com/aosanya/CodeValdSharedLib/eventbus"
 	"github.com/aosanya/CodeValdSharedLib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,6 +18,24 @@ import (
 )
 
 const bufSize = 1 << 20
+
+// testServerConfig collects optional dependencies for newTestClient.
+type testServerConfig struct {
+	dm  entitygraph.DataManager
+	pub eventbus.Publisher
+}
+
+type testServerOption func(*testServerConfig)
+
+// withDataManager injects a DataManager for tests that exercise the rollback RPC.
+func withDataManager(dm entitygraph.DataManager) testServerOption {
+	return func(c *testServerConfig) { c.dm = dm }
+}
+
+// withPublisher injects a CrossPublisher for tests that assert on emitted events.
+func withPublisher(pub eventbus.Publisher) testServerOption {
+	return func(c *testServerConfig) { c.pub = pub }
+}
 
 // fakeSchemaManager is a configurable stub for entitygraph.SchemaManager.
 type fakeSchemaManager struct {
@@ -45,12 +64,16 @@ func (f *fakeSchemaManager) ListVersions(ctx context.Context, agencyID string) (
 }
 
 // newTestClient spins up an in-memory gRPC server backed by the given SchemaManager
-// and returns a connected CommServiceClient.
-func newTestClient(t *testing.T, sm entitygraph.SchemaManager) pb.CommServiceClient {
+// (and optional DataManager / publisher) and returns a connected CommServiceClient.
+func newTestClient(t *testing.T, sm entitygraph.SchemaManager, opts ...testServerOption) pb.CommServiceClient {
 	t.Helper()
+	cfg := testServerConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	lis := bufconn.Listen(bufSize)
 	srv := grpc.NewServer()
-	pb.RegisterCommServiceServer(srv, server.New(sm))
+	pb.RegisterCommServiceServer(srv, server.New(cfg.dm, sm, cfg.pub))
 	go func() { _ = srv.Serve(lis) }()
 	t.Cleanup(srv.GracefulStop)
 

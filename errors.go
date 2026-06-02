@@ -20,3 +20,8 @@ var ErrEditWindowClosed = errors.New("edit window closed")
 
 // ErrInvalidEntity is returned when a required entity field fails validation.
 var ErrInvalidEntity = errors.New("invalid entity")
+
+// ErrWorkflowRunIDRequired is returned when a rollback request omits the
+// workflow_run_id (a global "rollback every run" sweep is intentionally not
+// supported).
+var ErrWorkflowRunIDRequired = errors.New("workflow_run_id is required")
