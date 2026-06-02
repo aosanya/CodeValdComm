@@ -12,3 +12,4 @@ Completed tasks are removed from `mvp.md` and recorded here with their completio
 | MVP-COMM-006 | HTTP Convenience Handlers | 2026-05-11 | main | `internal/httphandler/handler.go` — all 9 flows; `topics.go` topic constants |
 | MVP-COMM-007 | CodeValdCross Registration | 2026-05-11 | main | `internal/registrar/registrar.go`; `cmd/server/main.go` fully wired; heartbeat 20 s |
 | MVP-COMM-008 | Unit & Integration Tests | 2026-05-11 | main | `schema_test.go`, `internal/server/server_test.go`, `internal/httphandler/handler_test.go`; all tests pass |
+| FEAT-20260602-001 | workflow_run_id on Message + comm.* event payloads | 2026-06-02 | main | `schema.go` +property; `events.go` new payloads/topics; handler split → 4 files; new GET /messages?workflow_run_id=X; 4 new tests |
