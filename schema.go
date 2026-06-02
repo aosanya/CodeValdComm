@@ -114,6 +114,9 @@ func DefaultCommSchema() types.Schema {
 					{Name: "sender_id", Type: types.PropertyTypeString, Required: true},
 					// is_thread_root: true when this message has been promoted to a thread head.
 					{Name: "is_thread_root", Type: types.PropertyTypeBoolean},
+					// workflow_run_id links a pipeline-generated message to its originating WorkflowRun.
+					// Empty for operator-initiated messages.
+					{Name: "workflow_run_id", Type: types.PropertyTypeString},
 					{Name: "created_at", Type: types.PropertyTypeString},
 					{Name: "updated_at", Type: types.PropertyTypeString},
 				},
