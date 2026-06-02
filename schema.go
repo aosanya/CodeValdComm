@@ -117,6 +117,14 @@ func DefaultCommSchema() types.Schema {
 					// workflow_run_id links a pipeline-generated message to its originating WorkflowRun.
 					// Empty for operator-initiated messages.
 					{Name: "workflow_run_id", Type: types.PropertyTypeString},
+					// rollback_notification is true on the synthetic "pipeline rolled back"
+					// follow-up message posted by RollbackByWorkflowRun. Used for
+					// per-channel idempotency: a second rollback call finds the existing
+					// notification and skips the channel rather than re-posting.
+					{Name: "rollback_notification", Type: types.PropertyTypeBoolean},
+					// rollback_reason carries the operator-supplied reason string on a
+					// rollback notification message. Empty on regular messages.
+					{Name: "rollback_reason", Type: types.PropertyTypeString},
 					{Name: "created_at", Type: types.PropertyTypeString},
 					{Name: "updated_at", Type: types.PropertyTypeString},
 				},

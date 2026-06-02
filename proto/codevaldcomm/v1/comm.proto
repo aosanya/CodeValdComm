@@ -12,6 +12,15 @@ service CommService {
   // GetSchema returns the active comm schema for the given agency.
   // Error: NOT_FOUND if no schema has been seeded for the agency.
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
+
+  // RollbackByWorkflowRun applies the CodeValdComm leg of the WorkflowRun
+  // rollback coordinator (FEAT-20260602-004 Phase 2). For each distinct
+  // channel that holds at least one Message tagged with the rolled-back
+  // workflow_run_id, a single follow-up "pipeline rolled back" notification
+  // Message is posted. Prior Messages are preserved as audit. Channels that
+  // already received a rollback notification for this run are skipped, so
+  // the call is observably idempotent.
+  rpc RollbackByWorkflowRun(RollbackByWorkflowRunRequest) returns (RollbackByWorkflowRunResponse);
 }
 
 // GetSchemaRequest identifies the agency whose active comm schema to return.
@@ -32,4 +41,35 @@ message GetSchemaResponse {
 
   // agency_id is the agency this schema is scoped to.
   string agency_id = 4;
+}
+
+// RollbackByWorkflowRunRequest is the input to the CodeValdComm leg of the
+// WorkflowRun rollback coordinator (FEAT-20260602-004 Phase 2). The
+// coordinator in CodeValdWork calls this once per affected agency.
+message RollbackByWorkflowRunRequest {
+  // agency_id is required — Comm scopes every entity by agency.
+  string agency_id = 1;
+  // workflow_run_id is required — a global "rollback every run" sweep is
+  // intentionally not supported.
+  string workflow_run_id = 2;
+  // reason is the operator-supplied rollback reason recorded on the
+  // rollback notification Message body and forwarded in the
+  // comm.pipeline.rolled_back event payload.
+  string reason = 3;
+}
+
+// RollbackByWorkflowRunResponse summarises the per-channel outcomes. Every
+// channel that holds at least one Message tagged with the rolled-back
+// workflow_run_id appears in exactly one of the two slices.
+message RollbackByWorkflowRunResponse {
+  string workflow_run_id = 1;
+  // notified_channel_ids: channels that received a fresh rollback
+  // notification Message during this call.
+  repeated string notified_channel_ids = 2;
+  // skipped_channel_ids: channels that already held a rollback notification
+  // for this run; included so the call is observably idempotent.
+  repeated string skipped_channel_ids = 3;
+  // notification_message_ids: the Message IDs created during this call,
+  // aligned 1:1 with notified_channel_ids.
+  repeated string notification_message_ids = 4;
 }

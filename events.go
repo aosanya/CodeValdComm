@@ -14,6 +14,9 @@ const (
 	TopicThreadPromoted = "comm.thread.promoted"
 	// TopicMemberJoined fires after JoinChannel completes.
 	TopicMemberJoined = "comm.member.joined"
+	// TopicPipelineRolledBack fires once per channel that received a
+	// rollback notification Message during RollbackByWorkflowRun.
+	TopicPipelineRolledBack = "comm.pipeline.rolled_back"
 )
 
 // AllTopics is the closed list of topics this service publishes.
@@ -25,6 +28,7 @@ func AllTopics() []string {
 		TopicMessageFailed,
 		TopicThreadPromoted,
 		TopicMemberJoined,
+		TopicPipelineRolledBack,
 	}
 }
 
@@ -54,4 +58,14 @@ type MessageFailedPayload struct {
 	MessageID     string
 	Reason        string
 	WorkflowRunID string
+}
+
+// PipelineRolledBackPayload is the [eventbus.Event.Payload] for
+// [TopicPipelineRolledBack]. Published once per channel notified during a
+// RollbackByWorkflowRun call.
+type PipelineRolledBackPayload struct {
+	ChannelID     string
+	MessageID     string
+	WorkflowRunID string
+	Reason        string
 }

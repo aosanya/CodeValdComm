@@ -94,7 +94,7 @@ func Run(cfg config.Config) error {
 	// ── gRPC server ───────────────────────────────────────────────────────────
 	grpcServer, _ := serverutil.NewGRPCServer()
 	entitypb.RegisterEntityServiceServer(grpcServer, server.NewEntityServer(backend))
-	pb.RegisterCommServiceServer(grpcServer, server.New(backend))
+	pb.RegisterCommServiceServer(grpcServer, server.New(backend, backend, pub))
 	healthpb.RegisterHealthServiceServer(grpcServer, health.New("codevaldcomm"))
 
 	// ── HTTP convenience handler (9 comm flows) ───────────────────────────────

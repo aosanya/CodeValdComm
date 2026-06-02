@@ -25,6 +25,8 @@ func toGRPCError(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, codevaldcomm.ErrInvalidEntity):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, codevaldcomm.ErrWorkflowRunIDRequired):
+		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		return status.Errorf(codes.Internal, "internal error: %v", err)
 	}
