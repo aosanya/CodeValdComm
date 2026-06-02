@@ -88,7 +88,7 @@ git branch -d feature/COMM-XXX_description
 | Task ID | Title | Status | Depends On |
 |---|---|---|---|
 | FEAT-20260602-001 | `workflow_run_id` on `Message` + every `comm.*` event payload (Comm sibling of the [Cross umbrella](../../../CodeValdCross/documentation/3-SofwareDevelopment/mvp-details/FEAT-20260602-001_workflow_run_id_propagation_umbrella.md)) | ✅ Done | FEAT-20260602-001 in CodeValdFunctions (start-pipeline) |
-| FEAT-20260602-004 | `DELETE /by-workflow-run/{id}` rollback leg — send "pipeline rolled back" follow-up message into the conversation; do not delete prior messages ([Work umbrella](../../../CodeValdWork/documentation/3-SofwareDevelopment/mvp-details/FEAT-20260602-004_workflow_run_rollback_semantics.md)) | 🚀 In Progress | FEAT-20260602-001 |
+| FEAT-20260602-004 | `RollbackByWorkflowRun` rollback leg — post one synthetic "pipeline rolled back" follow-up message per affected channel; prior messages preserved as audit ([Work umbrella](../../../CodeValdWork/documentation/3-SofwareDevelopment/mvp-details/FEAT-20260602-004_workflow_run_rollback_semantics.md)) | ✅ Done | FEAT-20260602-001 |
 
 See [mvp-details/FEAT-20260602-001_workflow_run_id_in_comm.md](mvp-details/FEAT-20260602-001_workflow_run_id_in_comm.md).
 
