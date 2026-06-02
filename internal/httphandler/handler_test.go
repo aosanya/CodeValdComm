@@ -431,5 +431,101 @@ func TestAllTopics(t *testing.T) {
 	}
 }
 
+// ── workflow_run_id propagation ───────────────────────────────────────────────
+
+func TestSendMessage_WithWorkflowRunID(t *testing.T) {
+	var capturedProps map[string]any
+	dm := &fakeDataManager{
+		createEntity: func(_ context.Context, req entitygraph.CreateEntityRequest) (entitygraph.Entity, error) {
+			capturedProps = req.Properties
+			return entitygraph.Entity{ID: "msg-1", TypeID: req.TypeID, Properties: req.Properties}, nil
+		},
+	}
+	pub := &fakePublisher{}
+	h := newHandler(dm, pub)
+
+	body := bodyJSON(map[string]string{"body": "hello", "sender_id": "user-1", "workflow_run_id": "run-42"})
+	r := withAgency(httptest.NewRequest(http.MethodPost, "/channels/ch-1/messages", body), "agency-1")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusCreated)
+	}
+	if capturedProps["workflow_run_id"] != "run-42" {
+		t.Errorf("workflow_run_id not persisted; props = %v", capturedProps)
+	}
+	if len(pub.events) != 1 {
+		t.Fatalf("expected 1 event; got %d", len(pub.events))
+	}
+	payload, ok := pub.events[0].Payload.(httphandler.MessageSentPayload)
+	if !ok {
+		t.Fatalf("payload type = %T, want MessageSentPayload", pub.events[0].Payload)
+	}
+	if payload.WorkflowRunID != "run-42" {
+		t.Errorf("WorkflowRunID in event = %q, want %q", payload.WorkflowRunID, "run-42")
+	}
+}
+
+func TestSendMessage_WithoutWorkflowRunID(t *testing.T) {
+	var capturedProps map[string]any
+	dm := &fakeDataManager{
+		createEntity: func(_ context.Context, req entitygraph.CreateEntityRequest) (entitygraph.Entity, error) {
+			capturedProps = req.Properties
+			return entitygraph.Entity{ID: "msg-2", TypeID: req.TypeID, Properties: req.Properties}, nil
+		},
+	}
+	pub := &fakePublisher{}
+	h := newHandler(dm, pub)
+
+	body := bodyJSON(map[string]string{"body": "hello", "sender_id": "user-1"})
+	r := withAgency(httptest.NewRequest(http.MethodPost, "/channels/ch-1/messages", body), "agency-1")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusCreated)
+	}
+	if _, hasKey := capturedProps["workflow_run_id"]; hasKey {
+		t.Error("workflow_run_id should not be persisted when empty")
+	}
+	payload, _ := pub.events[0].Payload.(httphandler.MessageSentPayload)
+	if payload.WorkflowRunID != "" {
+		t.Errorf("WorkflowRunID in event = %q, want empty", payload.WorkflowRunID)
+	}
+}
+
+func TestListMessagesByWorkflowRun_MissingParam(t *testing.T) {
+	h := newHandler(&fakeDataManager{}, nil)
+	r := withAgency(httptest.NewRequest(http.MethodGet, "/messages", nil), "agency-1")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400 when workflow_run_id missing", w.Code)
+	}
+}
+
+func TestListMessagesByWorkflowRun_Success(t *testing.T) {
+	dm := &fakeDataManager{
+		listEntities: func(_ context.Context, filter entitygraph.EntityFilter) ([]entitygraph.Entity, error) {
+			if filter.Properties["workflow_run_id"] != "run-99" {
+				t.Errorf("filter workflow_run_id = %v, want run-99", filter.Properties["workflow_run_id"])
+			}
+			return []entitygraph.Entity{
+				{ID: "msg-3", TypeID: "Message", Properties: map[string]any{"workflow_run_id": "run-99"}},
+			}, nil
+		},
+	}
+	h := newHandler(dm, nil)
+	r := withAgency(httptest.NewRequest(http.MethodGet, "/messages?workflow_run_id=run-99", nil), "agency-1")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+}
+
 // Ensure Handler compiles with a nil CrossPublisher (eventbus.Publisher).
 var _ codevaldcomm.CrossPublisher = (*fakePublisher)(nil)
