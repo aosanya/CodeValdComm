@@ -1,22 +1,24 @@
 package codevaldcomm
 
+import "github.com/aosanya/CodeValdSharedLib/eventbus"
+
 // Event topic constants — the closed set CodeValdComm publishes.
 const (
 	// TopicMessageSent fires after SendMessage completes.
-	TopicMessageSent = "comm.message.sent"
+	TopicMessageSent = eventbus.DomainComm + "message.sent"
 	// TopicMessageEdited fires after EditMessage completes.
-	TopicMessageEdited = "comm.message.edited"
+	TopicMessageEdited = eventbus.DomainComm + "message.edited"
 	// TopicMessageDelivered fires when a message is confirmed delivered to a participant.
-	TopicMessageDelivered = "comm.message.delivered"
+	TopicMessageDelivered = eventbus.DomainComm + "message.delivered"
 	// TopicMessageFailed fires when a pipeline-triggered message cannot be delivered.
-	TopicMessageFailed = "comm.message.failed"
+	TopicMessageFailed = eventbus.DomainComm + "message.failed"
 	// TopicThreadPromoted fires after PromoteToThread completes.
-	TopicThreadPromoted = "comm.thread.promoted"
+	TopicThreadPromoted = eventbus.DomainComm + "thread.promoted"
 	// TopicMemberJoined fires after JoinChannel completes.
-	TopicMemberJoined = "comm.member.joined"
+	TopicMemberJoined = eventbus.DomainComm + "member.joined"
 	// TopicPipelineRolledBack fires once per channel that received a
 	// rollback notification Message during RollbackByWorkflowRun.
-	TopicPipelineRolledBack = "comm.pipeline.rolled_back"
+	TopicPipelineRolledBack = eventbus.DomainComm + "pipeline.rolled_back"
 )
 
 // AllTopics is the closed list of topics this service publishes.
